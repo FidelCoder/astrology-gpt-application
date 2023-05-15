@@ -27,10 +27,11 @@ const BirthDetailsForm = ({ setFormData }) => {
   const [dob, setDob] = useState('');
   const [time, setTime] = useState('');
   const [place, setPlace] = useState('');
+  const [gender, setGender] = useState(''); // New state variable for gender
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    setFormData({ name, dob, time, place });
+    setFormData({ name, dob, time, place, gender }); // Include gender in the setFormData call
   };
 
   return (
@@ -53,6 +54,15 @@ const BirthDetailsForm = ({ setFormData }) => {
       <Form.Group controlId="formBirthLocation">
         <StyledLabel>Birth Location</StyledLabel>
         <Form.Control type="text" placeholder="Enter your birth location" value={place} onChange={e => setPlace(e.target.value)} />
+      </Form.Group>
+
+      <Form.Group controlId="formGender">
+        <StyledLabel>Gender</StyledLabel>
+        <Form.Control as="select" custom onChange={e => setGender(e.target.value)}>
+          <option value="">Select your gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </Form.Control>
       </Form.Group>
 
       <StyledButton variant="primary" type="submit">
