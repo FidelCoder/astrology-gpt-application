@@ -1,8 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import styled from 'styled-components';
-//@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-
 
 // Define your styled components
 const StyledForm = styled(Form)`
@@ -24,27 +22,37 @@ const StyledButton = styled(Button)`
   }
 `;
 
-const BirthDetailsForm = () => {
+const BirthDetailsForm = ({ setFormData }) => {
+  const [name, setName] = useState('');
+  const [dob, setDob] = useState('');
+  const [time, setTime] = useState('');
+  const [place, setPlace] = useState('');
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    setFormData({ name, dob, time, place });
+  };
+
   return (
-    <StyledForm>
+    <StyledForm onSubmit={handleSubmit}>
       <Form.Group controlId="formName">
         <StyledLabel>Name</StyledLabel>
-        <Form.Control type="text" placeholder="Enter your name" />
+        <Form.Control type="text" placeholder="Enter your name" value={name} onChange={e => setName(e.target.value)} />
       </Form.Group>
 
       <Form.Group controlId="formBirthDate">
         <StyledLabel>Birth Date</StyledLabel>
-        <Form.Control type="date" />
+        <Form.Control type="date" value={dob} onChange={e => setDob(e.target.value)} />
       </Form.Group>
 
       <Form.Group controlId="formBirthTime">
         <StyledLabel>Birth Time</StyledLabel>
-        <Form.Control type="time" />
+        <Form.Control type="time" value={time} onChange={e => setTime(e.target.value)} />
       </Form.Group>
 
       <Form.Group controlId="formBirthLocation">
         <StyledLabel>Birth Location</StyledLabel>
-        <Form.Control type="text" placeholder="Enter your birth location" />
+        <Form.Control type="text" placeholder="Enter your birth location" value={place} onChange={e => setPlace(e.target.value)} />
       </Form.Group>
 
       <StyledButton variant="primary" type="submit">
