@@ -61,6 +61,7 @@
 
 ///////////////////////////////////////////////////////////////////
 import React, { useRef, useEffect } from 'react';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import * as THREE from 'three';
 import styled from 'styled-components';
 
@@ -82,29 +83,27 @@ const ThreeDModel = () => {
     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer();
 
-    // Load the texture
-    const loader = new THREE.TextureLoader();
-    loader.load('images.jpeg', function(texture) {
-      const geometry = new THREE.SphereGeometry(1, 32, 32);
-      const material = new THREE.MeshBasicMaterial({ map: texture });  // use the texture as material
-      const sphere = new THREE.Mesh(geometry, material);
-
-      scene.add(sphere);
-
-      camera.position.z = 5;
-
-      const animate = function () {
-        requestAnimationFrame(animate);
-        sphere.rotation.x += 0.01;
-        sphere.rotation.y += 0.01;
-        renderer.render(scene, camera);
-      };
-
-      renderer.setSize(width, height);
-      mount.current.appendChild(renderer.domElement);
-
-      animate();
+    const loader1 = new GLTFLoader();
+    loader1.load('moon_ring.glb', function(gltf) {
+      scene.add(gltf.scene);
     });
+
+    const loader2 = new GLTFLoader();
+    loader2.load('sun_ring.glb', function(gltf) {
+      scene.add(gltf.scene);
+    });
+
+    camera.position.z = 5;
+
+    const animate = function () {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    };
+
+    renderer.setSize(width, height);
+    mount.current.appendChild(renderer.domElement);
+
+    animate();
 
     // Clean up on unmount
     return () => {
