@@ -1,121 +1,70 @@
-// import React, { useRef, useEffect } from 'react';
-// import * as THREE from 'three';
-// import styled from 'styled-components';
-
-// const StyledModelContainer = styled.div`
-//   width: 50vw;
-//   height: 50vh;
-//   max-width: 600px;
-//   max-height: 600px;
-// `;
-
-// const ThreeDModel = () => {
-//   const mount = useRef(null);
-
-//   useEffect(() => {
-//     const width = mount.current.clientWidth;
-//     const height = mount.current.clientHeight;
-
-//     const scene = new THREE.Scene();
-//     const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-//     const renderer = new THREE.WebGLRenderer();
-
-//     const geometry = new THREE.SphereGeometry(1, 32, 32);
-//     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-//     const sphere = new THREE.Mesh(geometry, material);
-
-//     scene.add(sphere);
-
-//     camera.position.z = 5;
-
-//     const animate = function () {
-//       requestAnimationFrame(animate);
-//       sphere.rotation.x += 0.01;
-//       sphere.rotation.y += 0.01;
-//       renderer.render(scene, camera);
-//     };
-
-//     renderer.setSize(width, height);
-//     mount.current.appendChild(renderer.domElement);
-
-//     animate();
-
-//     // Clean up on unmount
-//     return () => {
-//       mount.current.removeChild(renderer.domElement);
-//       scene.remove(sphere);
-//       geometry.dispose();
-//       material.dispose();
-//       renderer.dispose();
-//     };
-//   }, []);
-
-//   return (
-//     <StyledModelContainer ref={mount} />
-//   );
-// };
-
-// export default ThreeDModel;
-
-
-
-///////////////////////////////////////////////////////////////////
 import React, { useRef, useEffect } from 'react';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import * as THREE from 'three';
 import styled from 'styled-components';
 
 const StyledModelContainer = styled.div`
-  width: 50vw;
-  height: 50vh;
-  max-width: 600px;
-  max-height: 600px;
+  width: 100vw;
+  height: 100vh;
 `;
 
 const ThreeDModel = () => {
   const mount = useRef(null);
 
   useEffect(() => {
-    const width = mount.current.clientWidth;
-    const height = mount.current.clientHeight;
-
+    const models = ['sun_ring.glb', 'moon_ring.glb', 'Earth_ring.glb', 'Astrological_houses.glb', 'Jupiter_ring.glb', 'Uranus_ring.glb', 'Venus_ring.glb', 'Zodiac_Archetypes.glb', 'Zodiac_costellation.glb', 'Zodiac_signs.glb'];
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const loader = new GLTFLoader();
 
-    const loader1 = new GLTFLoader();
-    loader1.load('moon_ring.glb', function(gltf) {
-      scene.add(gltf.scene);
-    });
-
-    const loader2 = new GLTFLoader();
-    loader2.load('sun_ring.glb', function(gltf) {
-      scene.add(gltf.scene);
-    });
-
+    let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;
 
-    const animate = function () {
+    const controls = new OrbitControls(camera, renderer.domElement);
+
+    models.forEach((model) => {
+      loader.load(model, (gltf) => {
+        gltf.scene.traverse((child) => {
+          if (child.isMesh) {
+            child.position.set(0, 0, 0);
+          }
+        });
+        scene.add(gltf.scene);
+        controls.target.set(0, 0, 0); // Update controls target
+      });
+    });
+
+    const animate = () => {
       requestAnimationFrame(animate);
       renderer.render(scene, camera);
+      controls.update(); // Required if controls.enableDamping or controls.autoRotate are set to true
     };
 
-    renderer.setSize(width, height);
-    mount.current.appendChild(renderer.domElement);
+    const handleResize = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    };
 
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    mount.current.appendChild(renderer.domElement);
     animate();
 
     // Clean up on unmount
     return () => {
-      while(mount.current.firstChild){
+      window.removeEventListener('resize', handleResize);
+      while (mount.current.firstChild) {
         mount.current.removeChild(mount.current.lastChild);
       }
     };
   }, []);
 
-  return (
-    <StyledModelContainer ref={mount} />
-  );
+  return <StyledModelContainer ref={mount} />;
 };
 
 export default ThreeDModel;
