@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Form, Button } from 'react-bootstrap';
+import api from '../api';
+import HoroscopeDetails from './HoroscopeDetails'; // Make sure this import path is correct
 
 // Styled Components
 const Container = styled.div`
@@ -22,8 +24,8 @@ const StyledLabel = styled(Form.Label)`
 `;
 
 const StyledControl = styled(Form.Control)`
-  color: #fff;
-  background-color: transparent;
+  color: #000;
+  background-color: #fff;
   border: none;
   border-bottom: 1px solid hsl(221, 26%, 43%);
   transition: all 1s ease-in-out;
@@ -31,7 +33,7 @@ const StyledControl = styled(Form.Control)`
   &:hover, &:focus {
     background: linear-gradient(90deg, transparent 0%, rgba(102, 224, 255, 0.2) 27%, rgba(102, 224, 255, 0.2) 63%, transparent 100%);
     border-bottom: 1px solid hsl(192, 100%, 100%);
-    color: hsl(192, 100%, 88%);
+    color: #000; // Here change color to black for hover and focus
   }
 `;
 
@@ -50,10 +52,50 @@ const BirthDetailsForm = ({ setFormData }) => {
   const [time, setTime] = useState('');
   const [place, setPlace] = useState('');
   const [gender, setGender] = useState('');
+  const [horoscope, setHoroscope] = useState({}); // Changed to an object
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (typeof setFormData !== 'function') {
+      console.error('setFormData is not a function');
+      return;
+    }
+
     setFormData({ name, dob, time, place, gender });
+
+    const systemMessage = `Given a ${gender} named ${name} born on ${dob} at ${time} in ${place}, please provide Zodiac sign, Sun sign.`;
+    const userMessage1 = "What's my zodiac sign based on the provided information?";
+
+    const response1 = await api.post('/chat/completions', {
+      "model": "gpt-3.5-turbo",
+      "messages": [
+        { "role": "system", "content": systemMessage },
+        { "role": "user", "content": userMessage1 }
+      ]
+    });
+
+    if (response1.data.choices && response1.data.choices.length > 0 && response1.data.choices[0].message) {
+      const zodiacSign = response1.data.choices[0].message.content.trim();
+
+      const systemMessage2 = `Given that the person is a ${zodiacSign}, provide a general horoscope for the day.`;
+      const userMessage2 = `What's the horoscope for a ${zodiacSign} today?`;
+
+      const response2 = await api.post('/chat/completions', {
+        "model": "gpt-3.5-turbo",
+        "messages": [
+          { "role": "system", "content": systemMessage2 },
+          { "role": "user", "content": userMessage2 }
+        ]
+      });
+
+      if (response2.data.choices && response2.data.choices.length > 0 && response2.data.choices[0].message) {
+        setHoroscope({
+          zodiacSign: zodiacSign,
+          horoscope: response2.data.choices[0].message.content,
+        });
+      }
+    }
   };
 
   return (
@@ -92,6 +134,7 @@ const BirthDetailsForm = ({ setFormData }) => {
           Generate Horoscope
         </StyledButton>
       </Form>
+      <HoroscopeDetails name={name} zodiacSign={horoscope.zodiacSign} horoscope={horoscope.horoscope} />
     </Container>
   );
 }
